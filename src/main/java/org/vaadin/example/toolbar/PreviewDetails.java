@@ -9,20 +9,26 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
 import org.vaadin.example.Miniature;
+import org.vaadin.example.service.MiniaturesService;
 
 import java.io.IOException;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public class PreviewDetails extends Details implements Switchable {
     private final Image preview = new Image();
     private final Paragraph filename = new Paragraph("File name");
     private final IntegerField numberField = new IntegerField("Number of models");
 
-    public PreviewDetails() {
+    public PreviewDetails(Supplier<Optional<Miniature>> miniatureSupplier) {
         super("Preview");
 
         disable();
         applyStyles();
         setWidthFull();
+
+        numberField.addValueChangeListener(
+                e -> miniatureSupplier.get().ifPresent(m -> m.setNumber(e.getValue())));
 
         add(getPreviewPanel());
     }
