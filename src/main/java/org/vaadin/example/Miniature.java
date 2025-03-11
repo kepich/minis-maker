@@ -18,8 +18,9 @@ public class Miniature {
     private final String fileName;
     private final StreamResource streamResource;
     private final byte[] bytes;
-    private int number = 0;
 
+    @Setter
+    private int number = 0;
     @Setter
     private int paddingTop = 0;
     @Setter

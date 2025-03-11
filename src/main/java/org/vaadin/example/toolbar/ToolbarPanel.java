@@ -1,4 +1,4 @@
-package org.vaadin.example;
+package org.vaadin.example.toolbar;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.details.Details;
@@ -9,6 +9,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import org.vaadin.example.Miniature;
 import org.vaadin.example.service.MiniaturesService;
 import org.vaadin.example.toolbar.BaseDetails;
 import org.vaadin.example.toolbar.PaddingDetails;
@@ -21,11 +22,12 @@ public class ToolbarPanel extends VerticalLayout {
 
     private final ListBox<Miniature> filesListBox = new ListBox<>();
     private final BaseDetails baseDetailsPanel = new BaseDetails();
-    private final PreviewDetails previewPanel = new PreviewDetails();
+    private final PreviewDetails previewPanel;
     private final PaddingDetails paddingImagePanel;
 
     public ToolbarPanel(MiniaturesService miniaturesService) {
         this.miniaturesService = miniaturesService;
+        this.previewPanel = new PreviewDetails(miniaturesService::selected);
         this.paddingImagePanel = new PaddingDetails(miniaturesService::selected, previewPanel::update);
         Details uploadImagePanel = new Details("Library", getUploadImagePanel());
         uploadImagePanel.addThemeVariants(DetailsVariant.SMALL, DetailsVariant.FILLED);
@@ -36,7 +38,7 @@ public class ToolbarPanel extends VerticalLayout {
 
     private Component getUploadImagePanel() {
         filesListBox.setRenderer(new ComponentRenderer<Component, Miniature>(miniature -> new Span(miniature.getFileName())));
-
+        filesListBox.setItems(miniaturesService.miniatures());
         MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
         Upload upload = getUpload(buffer);
 
