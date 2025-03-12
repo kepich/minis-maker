@@ -53,20 +53,25 @@ public class Miniature {
         return new StreamResource(fileName, (InputStreamFactory) () -> new ByteArrayInputStream(baos.toByteArray()));
     }
 
-    public BufferedImage getDoubledImage() throws IOException {
-        BufferedImage image = getSingleImage();
-        BufferedImage copyOfImage = new BufferedImage(image.getWidth(null), image.getHeight(null) * 2, image.getType());
-        Graphics2D g = copyOfImage.createGraphics();
+    public BufferedImage getDoubledImage() {
+        try {
+            BufferedImage image = getSingleImage();
 
-        AffineTransform at = new AffineTransform();
-        at.concatenate(AffineTransform.getScaleInstance(1, -1));
-        at.concatenate(AffineTransform.getTranslateInstance(0, -image.getHeight(null)));
+            BufferedImage copyOfImage = new BufferedImage(image.getWidth(null), image.getHeight(null) * 2, image.getType());
+            Graphics2D g = copyOfImage.createGraphics();
 
-        g.drawImage(image, 0, image.getHeight(null), null);
-        g.transform(at);
-        g.drawImage(image, 0, 0, null);
+            AffineTransform at = new AffineTransform();
+            at.concatenate(AffineTransform.getScaleInstance(1, -1));
+            at.concatenate(AffineTransform.getTranslateInstance(0, -image.getHeight(null)));
 
-        return copyOfImage;
+            g.drawImage(image, 0, image.getHeight(null), null);
+            g.transform(at);
+            g.drawImage(image, 0, 0, null);
+
+            return copyOfImage;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public BufferedImage getSingleImage() throws IOException {

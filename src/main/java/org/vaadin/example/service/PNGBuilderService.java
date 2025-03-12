@@ -5,6 +5,7 @@ import com.vaadin.flow.server.StreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 import org.vaadin.example.Miniature;
+import org.vaadin.example.pdf.Floor;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -12,6 +13,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.awt.image.BufferedImage.TYPE_4BYTE_ABGR;
 
@@ -34,23 +38,50 @@ public class PNGBuilderService {
         BufferedImage result = new BufferedImage(A4_WIDTH_PX, A4_HEIGHT_PX, TYPE_4BYTE_ABGR);
         Graphics g = result.createGraphics();
 
+        ArrayList<Floor> floors = getFloorsList();
         int y = (int) SPACING_PX;
-        for (Miniature miniature : miniaturesService.miniatures()) {
-            BufferedImage croppedBufferedImage = miniature.getDoubledImage();
-            for (int i = 0, x = (int) SPACING_PX; i < miniature.getNumber(); i++) {
-                if (x + croppedBufferedImage.getWidth() > (A4_WIDTH_PX - SPACING_PX)) {
-                    x = (int) SPACING_PX;
-                    y += croppedBufferedImage.getHeight();
-                }
-                g.drawImage(croppedBufferedImage, x, y, null);
-                x += croppedBufferedImage.getWidth();
-            }
-            y += croppedBufferedImage.getHeight();
+        int x = (int) SPACING_PX;
+        for(Floor floor: floors) {
+            floor.draw(x, y, g);
+            y += floor.getHeight();
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(result, "png", baos);
         return baos.toByteArray();
+    }
+
+    private ArrayList<Floor> getFloorsList() {
+        Map<Integer, ArrayList<Miniature>> miniatureMap = new HashMap<>();
+
+        miniaturesService.miniatures().forEach(miniature -> {
+            BufferedImage image = miniature.getDoubledImage();
+            if (miniatureMap.containsKey(image.getHeight())) {
+                miniatureMap.get(image.getHeight()).add(miniature);
+            } else {
+                ArrayList<Miniature> list = new ArrayList<>();
+                list.add(miniature);
+                miniatureMap.put(image.getHeight(), list);
+            }
+        });
+        ArrayList<Floor> floors = new ArrayList<>();
+        miniatureMap.keySet().stream().sorted((i1, i2) -> i2 - i1).forEach(key -> miniatureMap.get(key).forEach(miniature -> {
+            BufferedImage image = miniature.getDoubledImage();
+            int minisNeedToPush = miniature.getNumber();
+
+            for (int currentFloor = 0; currentFloor < floors.size() && minisNeedToPush > 0; currentFloor++) {
+                minisNeedToPush = floors.get(currentFloor).putMinis(image, minisNeedToPush);
+            }
+
+            while (minisNeedToPush > 0) {
+                Floor newFloor = new Floor(image.getHeight());
+                floors.add(newFloor);
+                minisNeedToPush = newFloor.putMinis(image, minisNeedToPush);
+            }
+            System.out.println(floors);
+        }));
+
+        return floors;
     }
 
     public StreamResource getPagePNGStreamResource() {
