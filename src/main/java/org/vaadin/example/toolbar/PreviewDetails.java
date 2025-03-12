@@ -9,7 +9,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
 import org.vaadin.example.Miniature;
-import org.vaadin.example.service.MiniaturesService;
 
 import java.io.IOException;
 import java.util.Optional;

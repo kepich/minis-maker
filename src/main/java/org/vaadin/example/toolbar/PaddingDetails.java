@@ -3,8 +3,6 @@ package org.vaadin.example.toolbar;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
-import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -12,7 +10,6 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
 import org.vaadin.example.Miniature;
 
-import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -51,54 +48,40 @@ public class PaddingDetails extends Details implements Switchable {
     }
 
     private Component getPaddingImagePanel() {
-        paddingTopField.setStep(1);
-        paddingTopField.setValue(0);
-        paddingTopField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
-        paddingTopField.setStepButtonsVisible(true);
-        paddingTopField.addValueChangeListener(e -> {
-            miniatureSupplier.get().ifPresent(miniature -> {
-                miniature.setPaddingTop(paddingTopField.getValue());
-                updateConsumer.accept(miniature);
-            });
+        configureNumericField(paddingTopField, miniature -> {
+            miniature.setPaddingTop(paddingTopField.getValue());
+            updateConsumer.accept(miniature);
         });
 
-        paddingBottomField.setStep(1);
-        paddingBottomField.setValue(0);
-        paddingBottomField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
-        paddingBottomField.setStepButtonsVisible(true);
-        paddingBottomField.addValueChangeListener(e -> {
-            miniatureSupplier.get().ifPresent(miniature -> {
-                miniature.setPaddingBottom(paddingBottomField.getValue());
-                updateConsumer.accept(miniature);
-            });
+        configureNumericField(paddingBottomField, miniature -> {
+            miniature.setPaddingBottom(paddingBottomField.getValue());
+            updateConsumer.accept(miniature);
         });
 
-        paddingRightField.setStep(1);
-        paddingRightField.setValue(0);
-        paddingRightField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
-        paddingRightField.setStepButtonsVisible(true);
-        paddingRightField.addValueChangeListener(e -> {
-            miniatureSupplier.get().ifPresent(miniature -> {
-                miniature.setPaddingRight(paddingRightField.getValue());
-                updateConsumer.accept(miniature);
-            });
+        configureNumericField(paddingRightField, miniature -> {
+            miniature.setPaddingRight(paddingRightField.getValue());
+            updateConsumer.accept(miniature);
         });
 
-        paddingLeftField.setStep(1);
-        paddingLeftField.setValue(0);
-        paddingLeftField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
-        paddingLeftField.setStepButtonsVisible(true);
-        paddingLeftField.addValueChangeListener(e -> {
-            miniatureSupplier.get().ifPresent(miniature -> {
-                miniature.setPaddingLeft(paddingLeftField.getValue());
-                updateConsumer.accept(miniature);
-            });
+        configureNumericField(paddingLeftField, miniature -> {
+            miniature.setPaddingLeft(paddingLeftField.getValue());
+            updateConsumer.accept(miniature);
         });
 
         VerticalLayout verticalLayout = new VerticalLayout(paddingTopField, new HorizontalLayout(paddingLeftField, paddingRightField), paddingBottomField);
         verticalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         verticalLayout.setSpacing(false);
         return verticalLayout;
+    }
+
+    private void configureNumericField(IntegerField field, Consumer<Miniature> paddingUpdateConsumer) {
+        field.setStep(1);
+        field.setValue(0);
+        field.addThemeVariants(TextFieldVariant.LUMO_SMALL);
+        field.setStepButtonsVisible(true);
+        field.addValueChangeListener(e -> {
+            miniatureSupplier.get().ifPresent(paddingUpdateConsumer);
+        });
     }
 
     public void setPaddings(int top, int bottom, int left, int right) {

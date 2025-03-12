@@ -11,7 +11,6 @@ import java.util.Optional;
 
 @Service
 @SessionScope
-
 public class MiniaturesService {
     private final Map<String, Miniature> files = new HashMap<>();
     private Miniature selected = null;

@@ -6,12 +6,13 @@ import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
+import org.vaadin.example.service.MiniaturesService;
 
 public class BaseDetails extends Details implements Switchable {
-    private final NumberField baseWidthField = new NumberField("Width (mm)");
-    private final NumberField baseLengthField = new NumberField("Length (mm)");
+    private final IntegerField baseWidthField = new IntegerField("Width (mm)");
+    private final IntegerField baseLengthField = new IntegerField("Length (mm)");
     private final Checkbox isCircleCheckBox = new Checkbox("Circle base", false,
         e -> baseLengthField.setEnabled(!e.getValue()));
     private final Checkbox isDrawBaseCheckBox = new Checkbox("Draw base", false,
@@ -20,9 +21,11 @@ public class BaseDetails extends Details implements Switchable {
             baseLengthField.setEnabled(e.getValue());
             isCircleCheckBox.setEnabled(e.getValue());
         });
+    private final MiniaturesService miniaturesService;
 
-    public BaseDetails() {
+    public BaseDetails(MiniaturesService miniaturesService) {
         super("Base");
+        this.miniaturesService = miniaturesService;
 
         disable();
         applyStyles();
@@ -48,6 +51,7 @@ public class BaseDetails extends Details implements Switchable {
         baseLengthField.setEnabled(false);
         isCircleCheckBox.setEnabled(false);
         baseWidthField.addValueChangeListener(e -> {
+            miniaturesService.selected().ifPresent(m -> m.setBaseWidthMm(e.getValue()));
             if (isCircleCheckBox.isEnabled() && isCircleCheckBox.getValue()) {
                 baseLengthField.setValue(baseWidthField.getValue());
             }
@@ -68,5 +72,9 @@ public class BaseDetails extends Details implements Switchable {
     public void disable() {
         setEnabled(false);
         setOpened(false);
+    }
+
+    public void setBaseWidth(int baseWidth) {
+        baseWidthField.setValue(baseWidth);
     }
 }

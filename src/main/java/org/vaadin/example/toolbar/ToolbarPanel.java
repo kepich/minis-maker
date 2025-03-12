@@ -11,9 +11,6 @@ import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.vaadin.example.Miniature;
 import org.vaadin.example.service.MiniaturesService;
-import org.vaadin.example.toolbar.BaseDetails;
-import org.vaadin.example.toolbar.PaddingDetails;
-import org.vaadin.example.toolbar.PreviewDetails;
 
 import java.io.IOException;
 
@@ -21,7 +18,7 @@ public class ToolbarPanel extends VerticalLayout {
     private final MiniaturesService miniaturesService;
 
     private final ListBox<Miniature> filesListBox = new ListBox<>();
-    private final BaseDetails baseDetailsPanel = new BaseDetails();
+    private final BaseDetails baseDetailsPanel;
     private final PreviewDetails previewPanel;
     private final PaddingDetails paddingImagePanel;
 
@@ -29,6 +26,7 @@ public class ToolbarPanel extends VerticalLayout {
         this.miniaturesService = miniaturesService;
         this.previewPanel = new PreviewDetails(miniaturesService::selected);
         this.paddingImagePanel = new PaddingDetails(miniaturesService::selected, previewPanel::update);
+        this.baseDetailsPanel = new BaseDetails(miniaturesService);
         Details uploadImagePanel = new Details("Library", getUploadImagePanel());
         uploadImagePanel.addThemeVariants(DetailsVariant.SMALL, DetailsVariant.FILLED);
         uploadImagePanel.setWidthFull();
@@ -45,6 +43,7 @@ public class ToolbarPanel extends VerticalLayout {
         filesListBox.addValueChangeListener(e -> {
             miniaturesService.select(e.getValue()).ifPresentOrElse(miniature -> {
                 baseDetailsPanel.enable();
+                baseDetailsPanel.setBaseWidth(miniature.getBaseWidthMm());
                 paddingImagePanel.enable();
                 paddingImagePanel.setPaddings(
                     miniature.getPaddingTop(),
