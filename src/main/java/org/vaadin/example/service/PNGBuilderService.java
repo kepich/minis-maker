@@ -36,7 +36,7 @@ public class PNGBuilderService {
 
         int y = (int) SPACING_PX;
         for (Miniature miniature : miniaturesService.miniatures()) {
-            BufferedImage croppedBufferedImage = miniature.getCroppedBufferedImage();
+            BufferedImage croppedBufferedImage = miniature.getDoubledImage();
             for (int i = 0, x = (int) SPACING_PX; i < miniature.getNumber(); i++) {
                 if (x + croppedBufferedImage.getWidth() > (A4_WIDTH_PX - SPACING_PX)) {
                     x = (int) SPACING_PX;

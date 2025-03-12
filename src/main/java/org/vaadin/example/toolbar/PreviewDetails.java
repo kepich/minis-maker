@@ -4,7 +4,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
 import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 
 public class PreviewDetails extends Details implements Switchable {
     private final Image preview = new Image();
-    private final Paragraph filename = new Paragraph("File name");
+    private final Span filename = new Span ("File name");
     private final IntegerField numberField = new IntegerField("Number of models");
 
     public PreviewDetails(Supplier<Optional<Miniature>> miniatureSupplier) {

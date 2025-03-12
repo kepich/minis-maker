@@ -22,35 +22,40 @@ public class ToolbarPanel extends VerticalLayout {
     private final PreviewDetails previewPanel;
     private final PaddingDetails paddingImagePanel;
 
-    public ToolbarPanel(MiniaturesService miniaturesService) {
+    public ToolbarPanel(MiniaturesService miniaturesService, PreviewDetails previewPanel) {
         this.miniaturesService = miniaturesService;
-        this.previewPanel = new PreviewDetails(miniaturesService::selected);
+        this.previewPanel = previewPanel;
         this.paddingImagePanel = new PaddingDetails(miniaturesService::selected, previewPanel::update);
         this.baseDetailsPanel = new BaseDetails(miniaturesService);
         Details uploadImagePanel = new Details("Library", getUploadImagePanel());
         uploadImagePanel.addThemeVariants(DetailsVariant.SMALL, DetailsVariant.FILLED);
         uploadImagePanel.setWidthFull();
+        uploadImagePanel.setOpened(true);
         setSpacing(false);
-        add(uploadImagePanel, baseDetailsPanel, paddingImagePanel, previewPanel);
+        add(uploadImagePanel, baseDetailsPanel, paddingImagePanel);
     }
 
     private Component getUploadImagePanel() {
         filesListBox.setRenderer(new ComponentRenderer<Component, Miniature>(miniature -> new Span(miniature.getFileName())));
         filesListBox.setItems(miniaturesService.miniatures());
+        filesListBox.setWidthFull();
         MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
         Upload upload = getUpload(buffer);
 
         filesListBox.addValueChangeListener(e -> {
             miniaturesService.select(e.getValue()).ifPresentOrElse(miniature -> {
                 baseDetailsPanel.enable();
+                baseDetailsPanel.setOpened(true);
                 baseDetailsPanel.setBaseWidth(miniature.getBaseWidthMm());
                 paddingImagePanel.enable();
+                paddingImagePanel.setOpened(true);
                 paddingImagePanel.setPaddings(
                     miniature.getPaddingTop(),
                     miniature.getPaddingBottom(),
                     miniature.getPaddingLeft(),
                     miniature.getPaddingRight());
                 previewPanel.enable();
+                previewPanel.setOpened(true);
                 previewPanel.update(miniature);
             }, () -> {
                 baseDetailsPanel.disable();
@@ -64,11 +69,13 @@ public class ToolbarPanel extends VerticalLayout {
 
     private Upload getUpload(MultiFileMemoryBuffer buffer) {
         Upload upload = new Upload(buffer);
+        upload.setDropAllowed(false);
 
         upload.addSucceededListener(event -> {
             try {
                 String fileName = event.getFileName();
                 filesListBox.setItems(miniaturesService.addAndSelect(new Miniature(fileName, buffer.getInputStream(fileName))));
+                upload.clearFileList();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

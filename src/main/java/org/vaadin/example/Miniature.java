@@ -43,31 +43,50 @@ public class Miniature {
     }
 
     public StreamResource getCroppedStreamResource() throws IOException {
-        BufferedImage copyOfImage = getCroppedBufferedImage();
+        BufferedImage copyOfImage = getSingleImage();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(copyOfImage, "png", baos);
         return new StreamResource(fileName, (InputStreamFactory) () -> new ByteArrayInputStream(baos.toByteArray()));
     }
 
-    public BufferedImage getCroppedBufferedImage() throws IOException {
+    public BufferedImage getDoubledImage() throws IOException {
+        BufferedImage image = getSingleImage();
+        BufferedImage copyOfImage = new BufferedImage(image.getWidth(null), image.getHeight(null) * 2, image.getType());
+        Graphics2D g = copyOfImage.createGraphics();
+
+        AffineTransform at = new AffineTransform();
+        at.concatenate(AffineTransform.getScaleInstance(1, -1));
+        at.concatenate(AffineTransform.getTranslateInstance(0, -image.getHeight(null)));
+
+        g.drawImage(image, 0, image.getHeight(null), null);
+        g.transform(at);
+        g.drawImage(image, 0, 0, null);
+
+        return copyOfImage;
+    }
+
+    public BufferedImage getSingleImage() throws IOException {
         BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
+        Image cropped = getCroppedImage(image);
+        BufferedImage copyOfImage = new BufferedImage(cropped.getWidth(null), cropped.getHeight(null), image.getType());
+        Graphics2D g = copyOfImage.createGraphics();
+        g.drawImage(cropped, 0, 0, null);
+        g.setColor(Color.BLACK);
+        g.drawLine(0, 0,  cropped.getWidth(null), 0);
+        g.drawLine(0, cropped.getHeight(null) - 1, cropped.getWidth(null), cropped.getHeight(null) - 1);
+        g.drawLine(0, 0, 0, cropped.getHeight(null));
+        g.drawLine(cropped.getWidth(null) - 1, 0, cropped.getWidth(null) - 1, cropped.getHeight(null));
+
+        return copyOfImage;
+    }
+
+    private Image getCroppedImage(BufferedImage image) {
         int width = image.getWidth() - paddingRight - paddingLeft;
         int height = image.getHeight() - paddingBottom - paddingTop;
         float scaleRatio = baseWidthMm / (width / PX_IN_MM);
         Image cropped = image
             .getSubimage(paddingLeft, paddingTop, width, height)
             .getScaledInstance((int) (width * scaleRatio), (int) (height * scaleRatio), SCALE_SMOOTH);
-        BufferedImage copyOfImage = new BufferedImage(cropped.getWidth(null), cropped.getHeight(null) * 2, image.getType());
-        Graphics2D g = copyOfImage.createGraphics();
-
-        AffineTransform at = new AffineTransform();
-        at.concatenate(AffineTransform.getScaleInstance(1, -1));
-        at.concatenate(AffineTransform.getTranslateInstance(0, -cropped.getHeight(null)));
-
-        g.drawImage(cropped, 0, cropped.getHeight(null), null);
-        g.transform(at);
-        g.drawImage(cropped, 0, 0, null);
-
-        return copyOfImage;
+        return cropped;
     }
 }
