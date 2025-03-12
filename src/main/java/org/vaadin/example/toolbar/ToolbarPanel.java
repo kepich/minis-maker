@@ -47,6 +47,8 @@ public class ToolbarPanel extends VerticalLayout {
                 baseDetailsPanel.enable();
                 baseDetailsPanel.setOpened(true);
                 baseDetailsPanel.setBaseWidth(miniature.getBaseWidthMm());
+                baseDetailsPanel.setBaseLength(miniature.getBaseLengthMm());
+                baseDetailsPanel.setDrawBase(miniature.isDrawBase());
                 paddingImagePanel.enable();
                 paddingImagePanel.setOpened(true);
                 paddingImagePanel.setPaddings(

@@ -2,6 +2,7 @@ package org.vaadin.example.service;
 
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
 import org.vaadin.example.Miniature;
@@ -15,7 +16,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.awt.image.BufferedImage.TYPE_4BYTE_ABGR;
 
@@ -34,21 +37,35 @@ public class PNGBuilderService {
         this.miniaturesService = miniaturesService;
     }
 
-    public byte[] getPagePNGBytes() throws IOException {
-        BufferedImage result = new BufferedImage(A4_WIDTH_PX, A4_HEIGHT_PX, TYPE_4BYTE_ABGR);
-        Graphics g = result.createGraphics();
-
+    public List<byte[]> getPagePNGBytes() throws IOException {
         ArrayList<Floor> floors = getFloorsList();
-        int y = (int) SPACING_PX;
-        int x = (int) SPACING_PX;
-        for(Floor floor: floors) {
-            floor.draw(x, y, g);
-            y += floor.getHeight();
+        ArrayList<byte[]> pages = new ArrayList<>();
+        while (!floors.isEmpty()) {
+            BufferedImage result = new BufferedImage(A4_WIDTH_PX, A4_HEIGHT_PX, TYPE_4BYTE_ABGR);
+            Graphics g = result.createGraphics();
+            g.setColor(Color.WHITE);
+            g.fillRect(0, 0, A4_WIDTH_PX, A4_HEIGHT_PX);
+
+            int y = (int) SPACING_PX;
+            int x = (int) SPACING_PX;
+
+            ArrayList<Floor> nextPage = new ArrayList<>();
+            for(Floor floor: floors) {
+                if (!floor.draw(x, y, g)) {
+                    nextPage.add(floor);
+                    continue;
+                }
+
+                y += floor.getHeight();
+            }
+            floors = nextPage;
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(result, "png", baos);
+            pages.add(baos.toByteArray());
         }
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(result, "png", baos);
-        return baos.toByteArray();
+        return pages;
     }
 
     private ArrayList<Floor> getFloorsList() {
@@ -84,13 +101,30 @@ public class PNGBuilderService {
         return floors;
     }
 
-    public StreamResource getPagePNGStreamResource() {
-        return new StreamResource("result.png", (InputStreamFactory) () -> {
-            try {
-                return new ByteArrayInputStream(getPagePNGBytes());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+    @SneakyThrows
+    public StreamResource getPagesStreamResource() {
+        List<byte[]> resources = getPagePNGBytes();
+        int imageWidth = (int) (A4_WIDTH_PX + 2 * SPACING_PX);
+        int onePageHeight = (int) (A4_HEIGHT_PX + SPACING_PX);
+        int imageHeight = onePageHeight * resources.size();
+        BufferedImage result = new BufferedImage(imageWidth, imageHeight, TYPE_4BYTE_ABGR);
+        Graphics g = result.getGraphics();
+        g.setColor(Color.GRAY);
+        g.fillRect(0, 0, imageWidth, imageHeight);
+
+        int y = (int) SPACING_PX;
+        for(byte[] bytes: resources) {
+            g.drawImage(imageFromBytes(bytes), (int) SPACING_PX, y, null);
+            y += onePageHeight;
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(result, "png", baos);
+        return new StreamResource("result.png", (InputStreamFactory) () -> new ByteArrayInputStream(baos.toByteArray()));
+    }
+
+    @SneakyThrows
+    private BufferedImage imageFromBytes(byte[] imageData) {
+        return ImageIO.read(new ByteArrayInputStream(imageData));
     }
 }

@@ -28,7 +28,7 @@ public class RightPanel extends SplitLayout {
         Image imageViewer = new Image();
         imageViewer.setWidthFull();
         Button generatePng = new Button("Build PDF", e -> {
-            imageViewer.setSrc(pngBuilderService.getPagePNGStreamResource());
+            imageViewer.setSrc(pngBuilderService.getPagesStreamResource());
         });
         Button downloadPdf = new Button("Download", e -> {
             try {

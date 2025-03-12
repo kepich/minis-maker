@@ -96,4 +96,12 @@ public class BaseDetails extends Details implements Switchable {
     public void setBaseWidth(int baseWidth) {
         baseWidthField.setValue(baseWidth);
     }
+
+    public void setBaseLength(int baseLengthMm) {
+        baseLengthField.setValue(baseLengthMm);
+    }
+
+    public void setDrawBase(boolean isDrawBase) {
+        isDrawBaseCheckBox.setValue(isDrawBase);
+    }
 }

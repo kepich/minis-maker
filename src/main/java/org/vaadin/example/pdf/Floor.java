@@ -6,8 +6,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import static org.vaadin.example.service.PNGBuilderService.A4_WIDTH_PX;
-import static org.vaadin.example.service.PNGBuilderService.SPACING_PX;
+import static org.vaadin.example.service.PNGBuilderService.*;
 
 public class Floor {
     private final ArrayList<Floor> subFloors = new ArrayList<>();
@@ -59,17 +58,21 @@ public class Floor {
         return minisNeedToPush;
     }
 
-    public void draw(int baseX, int baseY, Graphics g) {
-        int x = baseX;
-        for (int i = 0; i < numberOfMinis; i++) {
-            g.drawImage(image, x, baseY, null);
-            x += image.getWidth();
-        }
+    public boolean draw(int baseX, int baseY, Graphics g) {
+        if (baseY + height <= (A4_HEIGHT_PX - SPACING_PX)) {
+            int x = baseX;
+            for (int i = 0; i < numberOfMinis; i++) {
+                g.drawImage(image, x, baseY, null);
+                x += image.getWidth();
+            }
 
-        int y = baseY;
-        for (Floor subFloor: subFloors) {
-            subFloor.draw(x, y, g);
-            y += subFloor.height;
+            int y = baseY;
+            for (Floor subFloor: subFloors) {
+                subFloor.draw(x, y, g);
+                y += subFloor.height;
+            }
+            return true;
         }
+        return false;
     }
 }
