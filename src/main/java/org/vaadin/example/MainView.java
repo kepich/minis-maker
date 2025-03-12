@@ -3,10 +3,10 @@ package org.vaadin.example;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayoutVariant;
 import com.vaadin.flow.router.Route;
-import org.vaadin.example.toolbar.PreviewDetails;
-import org.vaadin.example.toolbar.RightPanel;
 import org.vaadin.example.service.MiniaturesService;
 import org.vaadin.example.service.PNGBuilderService;
+import org.vaadin.example.toolbar.PreviewDetails;
+import org.vaadin.example.toolbar.RightPanel;
 import org.vaadin.example.toolbar.ToolbarPanel;
 
 @Route

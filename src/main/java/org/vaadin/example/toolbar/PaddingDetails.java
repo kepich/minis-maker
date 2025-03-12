@@ -84,11 +84,14 @@ public class PaddingDetails extends Details implements Switchable {
         });
     }
 
-    public void setPaddings(int top, int bottom, int left, int right) {
-        paddingTopField.setValue(top);
-        paddingBottomField.setValue(bottom);
-        paddingLeftField.setValue(left);
-        paddingRightField.setValue(right);
+    public void init(Miniature miniature) {
+        enable();
+        setOpened(true);
+        setPaddings(
+            miniature.getPaddingTop(),
+            miniature.getPaddingBottom(),
+            miniature.getPaddingLeft(),
+            miniature.getPaddingRight());
     }
 
     @Override
@@ -101,5 +104,12 @@ public class PaddingDetails extends Details implements Switchable {
         setEnabled(false);
         setPaddings(0, 0, 0, 0);
         setOpened(false);
+    }
+
+    private void setPaddings(int top, int bottom, int left, int right) {
+        paddingTopField.setValue(top);
+        paddingBottomField.setValue(bottom);
+        paddingLeftField.setValue(left);
+        paddingRightField.setValue(right);
     }
 }

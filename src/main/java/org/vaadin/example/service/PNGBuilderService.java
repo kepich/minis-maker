@@ -5,7 +5,6 @@ import com.vaadin.flow.server.StreamResource;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.annotation.SessionScope;
-import org.vaadin.example.Miniature;
 import org.vaadin.example.pdf.Floor;
 
 import javax.imageio.ImageIO;
@@ -13,12 +12,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.awt.image.BufferedImage.TYPE_4BYTE_ABGR;
 
@@ -37,8 +32,9 @@ public class PNGBuilderService {
         this.miniaturesService = miniaturesService;
     }
 
-    public List<byte[]> getPagePNGBytes() throws IOException {
-        ArrayList<Floor> floors = getFloorsList();
+    @SneakyThrows
+    public List<byte[]> getPagePNGBytes() {
+        ArrayList<Floor> floors = miniaturesService.getFloors();
         ArrayList<byte[]> pages = new ArrayList<>();
         while (!floors.isEmpty()) {
             BufferedImage result = new BufferedImage(A4_WIDTH_PX, A4_HEIGHT_PX, TYPE_4BYTE_ABGR);
@@ -50,7 +46,7 @@ public class PNGBuilderService {
             int x = (int) SPACING_PX;
 
             ArrayList<Floor> nextPage = new ArrayList<>();
-            for(Floor floor: floors) {
+            for (Floor floor : floors) {
                 if (!floor.draw(x, y, g)) {
                     nextPage.add(floor);
                     continue;
@@ -68,39 +64,6 @@ public class PNGBuilderService {
         return pages;
     }
 
-    private ArrayList<Floor> getFloorsList() {
-        Map<Integer, ArrayList<Miniature>> miniatureMap = new HashMap<>();
-
-        miniaturesService.miniatures().forEach(miniature -> {
-            BufferedImage image = miniature.getDoubledImage();
-            if (miniatureMap.containsKey(image.getHeight())) {
-                miniatureMap.get(image.getHeight()).add(miniature);
-            } else {
-                ArrayList<Miniature> list = new ArrayList<>();
-                list.add(miniature);
-                miniatureMap.put(image.getHeight(), list);
-            }
-        });
-        ArrayList<Floor> floors = new ArrayList<>();
-        miniatureMap.keySet().stream().sorted((i1, i2) -> i2 - i1).forEach(key -> miniatureMap.get(key).forEach(miniature -> {
-            BufferedImage image = miniature.getDoubledImage();
-            int minisNeedToPush = miniature.getNumber();
-
-            for (int currentFloor = 0; currentFloor < floors.size() && minisNeedToPush > 0; currentFloor++) {
-                minisNeedToPush = floors.get(currentFloor).putMinis(image, minisNeedToPush);
-            }
-
-            while (minisNeedToPush > 0) {
-                Floor newFloor = new Floor(image.getHeight());
-                floors.add(newFloor);
-                minisNeedToPush = newFloor.putMinis(image, minisNeedToPush);
-            }
-            System.out.println(floors);
-        }));
-
-        return floors;
-    }
-
     @SneakyThrows
     public StreamResource getPagesStreamResource() {
         List<byte[]> resources = getPagePNGBytes();
@@ -113,18 +76,13 @@ public class PNGBuilderService {
         g.fillRect(0, 0, imageWidth, imageHeight);
 
         int y = (int) SPACING_PX;
-        for(byte[] bytes: resources) {
-            g.drawImage(imageFromBytes(bytes), (int) SPACING_PX, y, null);
+        for (byte[] bytes : resources) {
+            g.drawImage(ImageIO.read(new ByteArrayInputStream(bytes)), (int) SPACING_PX, y, null);
             y += onePageHeight;
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(result, "png", baos);
         return new StreamResource("result.png", (InputStreamFactory) () -> new ByteArrayInputStream(baos.toByteArray()));
-    }
-
-    @SneakyThrows
-    private BufferedImage imageFromBytes(byte[] imageData) {
-        return ImageIO.read(new ByteArrayInputStream(imageData));
     }
 }

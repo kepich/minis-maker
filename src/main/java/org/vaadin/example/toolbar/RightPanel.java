@@ -1,6 +1,5 @@
 package org.vaadin.example.toolbar;
 
-import com.itextpdf.text.DocumentException;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Image;
@@ -14,8 +13,6 @@ import com.vaadin.flow.server.StreamRegistration;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 import org.vaadin.example.service.PNGBuilderService;
-
-import java.io.IOException;
 
 import static org.vaadin.example.pdf.PDFUtils.createPDFStreamResource;
 
@@ -31,13 +28,9 @@ public class RightPanel extends SplitLayout {
             imageViewer.setSrc(pngBuilderService.getPagesStreamResource());
         });
         Button downloadPdf = new Button("Download", e -> {
-            try {
-                StreamResource streamResource = createPDFStreamResource(pngBuilderService.getPagePNGBytes());
-                StreamRegistration registration = VaadinSession.getCurrent().getResourceRegistry().registerResource(streamResource);
-                UI.getCurrent().getPage().open(registration.getResourceUri().toString());
-            } catch (IOException | DocumentException ex) {
-                throw new RuntimeException(ex);
-            }
+            StreamResource streamResource = createPDFStreamResource(pngBuilderService.getPagePNGBytes());
+            StreamRegistration registration = VaadinSession.getCurrent().getResourceRegistry().registerResource(streamResource);
+            UI.getCurrent().getPage().open(registration.getResourceUri().toString());
         });
         Scroller scroller = new Scroller(imageViewer);
         scroller.setWidthFull();

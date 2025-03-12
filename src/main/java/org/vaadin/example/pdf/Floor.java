@@ -46,7 +46,7 @@ public class Floor {
                 this.subFloors.add(new Floor(img.getHeight(), availableSize));
             }
 
-            for (Floor subfloor: subFloors) {
+            for (Floor subfloor : subFloors) {
                 if (minisNeedToPush > 0) {
                     minisNeedToPush = subfloor.putMinis(img, minisNeedToPush);
                 } else {
@@ -67,7 +67,7 @@ public class Floor {
             }
 
             int y = baseY;
-            for (Floor subFloor: subFloors) {
+            for (Floor subFloor : subFloors) {
                 subFloor.draw(x, y, g);
                 y += subFloor.height;
             }

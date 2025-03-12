@@ -8,6 +8,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
+import org.vaadin.example.Miniature;
 import org.vaadin.example.service.MiniaturesService;
 
 import java.util.Optional;
@@ -22,26 +23,12 @@ public class BaseDetails extends Details implements Switchable {
     public BaseDetails(MiniaturesService miniaturesService) {
         super("Base");
         this.miniaturesService = miniaturesService;
-        this.isCircleCheckBox = new Checkbox("Circle base", false,
-            e -> {
-            baseLengthField.setEnabled(!e.getValue());
-            if (e.getValue()) {
-                miniaturesService.selected().ifPresent(m -> m.setBaseLengthMm(baseWidthField.getValue()));
-            } else {
-                Optional.ofNullable(baseLengthField.getValue())
-                    .ifPresent(v -> miniaturesService.selected().ifPresent(m -> m.setBaseLengthMm(v)));
-            }
-        });
-        this.isDrawBaseCheckBox = new Checkbox("Draw base", false,
-            e -> {
-                miniaturesService.selected().ifPresent(m -> m.setDrawBase(e.getValue()));
-                isCircleCheckBox.setValue(false);
-                baseLengthField.setEnabled(e.getValue());
-                isCircleCheckBox.setEnabled(e.getValue());
-            });
+        this.isCircleCheckBox = new Checkbox("Circle base", false);
+        this.isDrawBaseCheckBox = new Checkbox("Draw base", false);
 
         disable();
         applyStyles();
+        configure();
         setWidthFull();
 
         add(getBaseDetailsPanel());
@@ -59,12 +46,24 @@ public class BaseDetails extends Details implements Switchable {
         baseLengthField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
     }
 
-    private Component getBaseDetailsPanel() {
-        VerticalLayout verticalLayout = new VerticalLayout();
-        verticalLayout.setSpacing(false);
-        verticalLayout.setWidthFull();
-        baseLengthField.setEnabled(false);
-        isCircleCheckBox.setEnabled(false);
+    private void configure() {
+        this.isDrawBaseCheckBox.addValueChangeListener(e -> {
+            miniaturesService.selected().ifPresent(m -> m.setDrawBase(e.getValue()));
+            isCircleCheckBox.setValue(false);
+            baseLengthField.setEnabled(e.getValue());
+            isCircleCheckBox.setEnabled(e.getValue());
+        });
+
+        this.isCircleCheckBox.addValueChangeListener(e -> {
+            baseLengthField.setEnabled(!e.getValue());
+            if (e.getValue()) {
+                miniaturesService.selected().ifPresent(m -> m.setBaseLengthMm(baseWidthField.getValue()));
+            } else {
+                Optional.ofNullable(baseLengthField.getValue())
+                    .ifPresent(v -> miniaturesService.selected().ifPresent(m -> m.setBaseLengthMm(v)));
+            }
+        });
+
         baseWidthField.addValueChangeListener(e -> {
             miniaturesService.selected().ifPresent(m -> m.setBaseWidthMm(e.getValue()));
             if (isCircleCheckBox.isEnabled() && isCircleCheckBox.getValue()) {
@@ -72,9 +71,16 @@ public class BaseDetails extends Details implements Switchable {
             }
         });
 
+        baseLengthField.setEnabled(false);
         baseLengthField.addValueChangeListener(e -> {
             miniaturesService.selected().ifPresent(m -> m.setBaseLengthMm(e.getValue()));
         });
+    }
+
+    private Component getBaseDetailsPanel() {
+        VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.setSpacing(false);
+        verticalLayout.setWidthFull();
 
         verticalLayout.add(
             new HorizontalLayout(isDrawBaseCheckBox, isCircleCheckBox),
@@ -93,15 +99,12 @@ public class BaseDetails extends Details implements Switchable {
         setOpened(false);
     }
 
-    public void setBaseWidth(int baseWidth) {
-        baseWidthField.setValue(baseWidth);
-    }
-
-    public void setBaseLength(int baseLengthMm) {
-        baseLengthField.setValue(baseLengthMm);
-    }
-
-    public void setDrawBase(boolean isDrawBase) {
-        isDrawBaseCheckBox.setValue(isDrawBase);
+    public void init(Miniature miniature) {
+        enable();
+        setOpened(true);
+        baseWidthField.setValue(miniature.getBaseWidthMm());
+        baseLengthField.setValue(miniature.getBaseLengthMm());
+        isDrawBaseCheckBox.setValue(miniature.isDrawBase());
+        isCircleCheckBox.setValue(miniature.getBaseWidthMm() == miniature.getBaseLengthMm());
     }
 }
