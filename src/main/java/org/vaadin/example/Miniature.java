@@ -35,6 +35,10 @@ public class Miniature {
     private int paddingRight = 0;
     @Setter
     private int baseWidthMm = 25;
+    @Setter
+    private int baseLengthMm = 25;
+    @Setter
+    private boolean isDrawBase = false;
 
     public Miniature(String fileName, InputStream inputStream) throws IOException {
         this.fileName = fileName;
@@ -68,14 +72,24 @@ public class Miniature {
     public BufferedImage getSingleImage() throws IOException {
         BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
         Image cropped = getCroppedImage(image);
-        BufferedImage copyOfImage = new BufferedImage(cropped.getWidth(null), cropped.getHeight(null), image.getType());
+        int croppedHeight = cropped.getHeight(null);
+        float baseSize = baseLengthMm * PX_IN_MM;
+        int imageHeight = (int) (croppedHeight + ((isDrawBase) ? baseSize / 2 : 0));
+        int croppedWidth = cropped.getWidth(null);
+        BufferedImage copyOfImage = new BufferedImage(croppedWidth, imageHeight, image.getType());
         Graphics2D g = copyOfImage.createGraphics();
         g.drawImage(cropped, 0, 0, null);
         g.setColor(Color.BLACK);
-        g.drawLine(0, 0,  cropped.getWidth(null), 0);
-        g.drawLine(0, cropped.getHeight(null) - 1, cropped.getWidth(null), cropped.getHeight(null) - 1);
-        g.drawLine(0, 0, 0, cropped.getHeight(null));
-        g.drawLine(cropped.getWidth(null) - 1, 0, cropped.getWidth(null) - 1, cropped.getHeight(null));
+        g.drawLine(0, 0, croppedWidth, 0);
+        g.drawLine(0, croppedHeight - 1, croppedWidth, croppedHeight - 1);
+        g.drawLine(0, 0, 0, croppedHeight);
+        g.drawLine(croppedWidth - 1, 0, croppedWidth - 1, croppedHeight);
+        if (isDrawBase) {
+            g.setColor(Color.WHITE);
+            g.fillRect(0, croppedHeight, croppedWidth, (int) (baseSize));
+            g.setColor(Color.BLACK);
+            g.drawArc(0, (int) (croppedHeight - baseSize / 2), croppedWidth, (int) (baseSize), 180, 180);
+        }
 
         return copyOfImage;
     }
