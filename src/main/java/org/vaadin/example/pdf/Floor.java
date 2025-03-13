@@ -46,12 +46,21 @@ public class Floor {
                 this.subFloors.add(new Floor(img.getHeight(), availableSize));
             }
 
+            int tempHeight = 0;
             for (Floor subfloor : subFloors) {
+                tempHeight += subfloor.height;
                 if (minisNeedToPush > 0) {
                     minisNeedToPush = subfloor.putMinis(img, minisNeedToPush);
                 } else {
                     break;
                 }
+            }
+
+            while (minisNeedToPush > 0 && ((height - tempHeight) > img.getHeight())) {
+                Floor newSubFloor = new Floor(img.getHeight(), availableSize);
+                minisNeedToPush = newSubFloor.putMinis(img, minisNeedToPush);
+                tempHeight += newSubFloor.height;
+                this.subFloors.add(newSubFloor);
             }
         }
 
