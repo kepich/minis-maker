@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 import static java.awt.Image.SCALE_SMOOTH;
+import static org.vaadin.example.service.EdgeDetectionService.sobelEdgeDetection;
 import static org.vaadin.example.service.PNGBuilderService.PX_IN_MM;
 
 @Getter
@@ -50,6 +51,8 @@ public class Miniature {
         this.fileName = fileName;
         this.streamResource = new StreamResource(fileName, () -> inputStream);
         this.bytes = inputStream.readAllBytes();
+
+        fitPaddingsAndBaseSize();
     }
 
     @SneakyThrows
@@ -111,5 +114,10 @@ public class Miniature {
         return image
             .getSubimage(paddingLeft, paddingTop, width, height)
             .getScaledInstance((int) (width * scaleRatio), (int) (height * scaleRatio), SCALE_SMOOTH);
+    }
+
+    @SneakyThrows
+    private void fitPaddingsAndBaseSize() {
+        sobelEdgeDetection(ImageIO.read(new ByteArrayInputStream(bytes)), this);
     }
 }
