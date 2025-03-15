@@ -40,6 +40,11 @@ public class Miniature {
     @Setter
     private boolean isDrawBase = false;
 
+    @Setter
+    private int baseOffsetLeft = 0;
+    @Setter
+    private int baseOffsetRight = 0;
+
     @SneakyThrows
     public Miniature(String fileName, InputStream inputStream) {
         this.fileName = fileName;
@@ -93,7 +98,7 @@ public class Miniature {
             g.setColor(Color.WHITE);
             g.fillRect(0, croppedHeight, croppedWidth, (int) (baseSize));
             g.setColor(Color.BLACK);
-            g.drawArc(0, (int) (croppedHeight - baseSize / 2), croppedWidth, (int) (baseSize), 180, 180);
+            g.drawArc(baseOffsetLeft, (int) (croppedHeight - baseSize / 2), (int) (baseWidthMm * PX_IN_MM), (int) (baseSize), 180, 180);
         }
 
         return copyOfImage;
@@ -102,7 +107,7 @@ public class Miniature {
     private Image getCroppedImage(BufferedImage image) {
         int width = image.getWidth() - paddingRight - paddingLeft;
         int height = image.getHeight() - paddingBottom - paddingTop;
-        float scaleRatio = baseWidthMm / (width / PX_IN_MM);
+        float scaleRatio = baseWidthMm / ((width - baseOffsetLeft - baseOffsetRight) / PX_IN_MM);
         return image
             .getSubimage(paddingLeft, paddingTop, width, height)
             .getScaledInstance((int) (width * scaleRatio), (int) (height * scaleRatio), SCALE_SMOOTH);

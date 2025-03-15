@@ -12,17 +12,22 @@ import org.vaadin.example.Miniature;
 import org.vaadin.example.service.MiniaturesService;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class BaseDetails extends Details implements Switchable {
     private final MiniaturesService miniaturesService;
+    private final Consumer<Miniature> updateConsumer;
     private final IntegerField baseWidthField = new IntegerField("Width (mm)");
     private final IntegerField baseLengthField = new IntegerField("Length (mm)");
+    private final IntegerField baseOffsetLeftField = new IntegerField("Offset left");
+    private final IntegerField baseOffsetRightField = new IntegerField("Offset right");
     private final Checkbox isCircleCheckBox;
     private final Checkbox isDrawBaseCheckBox;
 
-    public BaseDetails(MiniaturesService miniaturesService) {
+    public BaseDetails(MiniaturesService miniaturesService, Consumer<Miniature> updateConsumer) {
         super("Base");
         this.miniaturesService = miniaturesService;
+        this.updateConsumer = updateConsumer;
         this.isCircleCheckBox = new Checkbox("Circle base", false);
         this.isDrawBaseCheckBox = new Checkbox("Draw base", false);
 
@@ -44,23 +49,42 @@ public class BaseDetails extends Details implements Switchable {
         baseLengthField.setWidth("90px");
         baseLengthField.setMin(20);
         baseLengthField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
+
+        baseOffsetLeftField.setWidth("90px");
+        baseOffsetLeftField.setMin(0);
+        baseOffsetLeftField.setStepButtonsVisible(true);
+        baseOffsetLeftField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
+
+        baseOffsetRightField.setWidth("90px");
+        baseOffsetRightField.setMin(0);
+        baseOffsetRightField.setStepButtonsVisible(true);
+        baseOffsetRightField.addThemeVariants(TextFieldVariant.LUMO_SMALL);
     }
 
     private void configure() {
         this.isDrawBaseCheckBox.addValueChangeListener(e -> {
-            miniaturesService.selected().ifPresent(m -> m.setDrawBase(e.getValue()));
             isCircleCheckBox.setValue(false);
             baseLengthField.setEnabled(e.getValue());
             isCircleCheckBox.setEnabled(e.getValue());
+            miniaturesService.selected().ifPresent(m -> {
+                m.setDrawBase(e.getValue());
+                updateConsumer.accept(m);
+            });
         });
 
         this.isCircleCheckBox.addValueChangeListener(e -> {
             baseLengthField.setEnabled(!e.getValue());
             if (e.getValue()) {
-                miniaturesService.selected().ifPresent(m -> m.setBaseLengthMm(baseWidthField.getValue()));
+                miniaturesService.selected().ifPresent(m -> {
+                    m.setBaseLengthMm(baseWidthField.getValue());
+                    updateConsumer.accept(m);
+                });
             } else {
                 Optional.ofNullable(baseLengthField.getValue())
-                    .ifPresent(v -> miniaturesService.selected().ifPresent(m -> m.setBaseLengthMm(v)));
+                    .ifPresent(v -> miniaturesService.selected().ifPresent(m -> {
+                        m.setBaseLengthMm(v);
+                        updateConsumer.accept(m);
+                    }));
             }
         });
 
@@ -69,11 +93,22 @@ public class BaseDetails extends Details implements Switchable {
             if (isCircleCheckBox.isEnabled() && isCircleCheckBox.getValue()) {
                 baseLengthField.setValue(baseWidthField.getValue());
             }
+            miniaturesService.selected().ifPresent(updateConsumer);
         });
 
         baseLengthField.setEnabled(false);
         baseLengthField.addValueChangeListener(e -> {
             miniaturesService.selected().ifPresent(m -> m.setBaseLengthMm(e.getValue()));
+            miniaturesService.selected().ifPresent(updateConsumer);
+        });
+
+        baseOffsetLeftField.addValueChangeListener(e -> {
+            miniaturesService.selected().ifPresent(m -> m.setBaseOffsetLeft(e.getValue()));
+            miniaturesService.selected().ifPresent(updateConsumer);
+        });
+        baseOffsetRightField.addValueChangeListener(e -> {
+            miniaturesService.selected().ifPresent(m -> m.setBaseOffsetRight(e.getValue()));
+            miniaturesService.selected().ifPresent(updateConsumer);
         });
     }
 
@@ -84,7 +119,8 @@ public class BaseDetails extends Details implements Switchable {
 
         verticalLayout.add(
             new HorizontalLayout(isDrawBaseCheckBox, isCircleCheckBox),
-            new HorizontalLayout(baseWidthField, baseLengthField));
+            new HorizontalLayout(baseWidthField, baseLengthField),
+            new HorizontalLayout(baseOffsetLeftField, baseOffsetRightField));
         return verticalLayout;
     }
 
@@ -104,6 +140,8 @@ public class BaseDetails extends Details implements Switchable {
         setOpened(true);
         baseWidthField.setValue(miniature.getBaseWidthMm());
         baseLengthField.setValue(miniature.getBaseLengthMm());
+        baseOffsetLeftField.setValue(miniature.getBaseOffsetLeft());
+        baseOffsetRightField.setValue(miniature.getBaseOffsetRight());
         isDrawBaseCheckBox.setValue(miniature.isDrawBase());
         isCircleCheckBox.setValue(miniature.getBaseWidthMm() == miniature.getBaseLengthMm());
     }

@@ -35,7 +35,7 @@ public class ToolbarPanel extends VerticalLayout {
         this.previewPanel = previewPanel;
         this.oprService = oprService;
         this.paddingImagePanel = new PaddingDetails(miniaturesService::selected, previewPanel::update);
-        this.baseDetailsPanel = new BaseDetails(miniaturesService);
+        this.baseDetailsPanel = new BaseDetails(miniaturesService, previewPanel::update);
         Details uploadImagePanel = new Details("Library", getUploadImagePanel());
         uploadImagePanel.addThemeVariants(DetailsVariant.SMALL, DetailsVariant.FILLED);
         uploadImagePanel.setWidthFull();
